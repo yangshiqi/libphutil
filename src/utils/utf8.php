@@ -745,3 +745,57 @@ function phutil_utf8v_combined($string) {
 
   return $components;
 }
+
+/**
+ * Format a system LANG to encoding string.
+ *
+ * @param string A LANG string.
+ * @return string A encoding string with lowercase.
+ */
+function phutil_utf8_convertlang($lang) {
+    $dotPos = strpos($lang, '.');
+    if (false !== $dotPos) {
+        $lang = substr($lang, $dotPos+1);
+    }
+    return strtolower($lang);
+}
+
+/**
+ * A Recursive implemens for phutil_utf8_convert
+ *
+ * @param array.
+ * @return array with encoding.
+ */
+
+function phutil_utf8_recursive_convert($arr, $toEncoding, $fromEncoding='', $convertKey=false) {
+    $toEncoding = strtolower($toEncoding);
+    $fromEncoding = strtolower($fromEncoding);
+    if (empty($arr) || $toEncoding == $fromEncoding) {
+        return $arr;
+
+    }
+    if (is_array($arr)) {
+        $res = array();
+        foreach ($arr as $key => $value) {
+            if ($convertKey && $toEncoding != strtolower(mb_detect_encoding($key))) {
+                $key = phutil_utf8_convert($key, $toEncoding, $fromEncoding);
+            }
+            if (is_array($value)) {
+                $value = phutil_utf8_convert_iterator($value, $toEncoding, $fromEncoding, $convertKey);
+            } else {
+                if ($toEncoding != strtolower(mb_detect_encoding($value))) {
+                    $value = phutil_utf8_convert($value, $toEncoding, $fromEncoding);
+
+                }
+            }
+            $res[$key] = $value;
+
+        }
+    } else {
+        if ($toEncoding != strtolower(mb_detect_encoding($arr))) {
+            $res = phutil_utf8_convert($arr, $toEncoding, $fromEncoding);
+
+        }
+    }
+    return $res;
+}

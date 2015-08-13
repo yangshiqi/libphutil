@@ -55,7 +55,19 @@ final class ConduitClient extends Phobject {
   }
 
   public function callMethodSynchronous($method, array $params) {
-    return $this->callMethod($method, $params)->resolve();
+      $lang = getenv('LANG');
+      $encoding = phutil_utf8_convertlang($lang);
+      if ('utf-8' != $encoding) {
+          $params = phutil_utf8_recursive_convert($params, 'utf-8', $encoding, true);
+      }
+
+      $res = $this->callMethod($method, $params)->resolve();
+
+      if ('utf-8' != $encoding) {
+          $res = phutil_utf8_recursive_convert($res, $encoding, 'utf-8', true);
+      }
+
+      return $res;
   }
 
   public function didReceiveResponse($method, $data) {
